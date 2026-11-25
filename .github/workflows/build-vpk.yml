@@ -32,12 +32,22 @@ jobs:
       - name: Create VPK manually
         run: |
           set -e
-          # Find the executable
-          echo "=== Checking build directory ==="
+          # First check what files exist in build
+          echo "=== Build directory listing ==="
           ls -la build/
+          echo ""
+          echo "=== Checking for executable ==="
+          ls -la build/smb2_vita 2>/dev/null || echo "smb2_vita not found"
+          ls -la build/smb2_vita.self 2>/dev/null || echo "smb2_vita.self not found"
+          ls -la build/smb2_vita.vpk 2>/dev/null || echo "smb2_vita.vpk not found"
           
-          # Create .elf from executable
-          vita-elf-create build/smb2_vita build/smb2_vita.elf
+          # Find the actual executable path
+          EXE=$(find build/ -type f -executable ! -name "vita-*" 2>/dev/null | head -1)
+          echo "Found executable: $EXE"
+          if [ -z "$EXE" ]; then
+            echo "No executable found! Build may have failed silently."
+            exit 1
+          fi
           echo "=== ELF created ==="
           
           # Create .self
