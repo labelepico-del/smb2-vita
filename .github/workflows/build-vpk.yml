@@ -29,6 +29,18 @@ jobs:
       - name: Build executable
         run: cmake --build build --parallel "$(nproc)" --verbose 2>&1 | head -200
 
+      - name: Verify build artifacts
+        run: |
+          echo "=== Checking build directory ==="
+          ls -la build/
+          echo "=== Looking for executable ==="
+          find build/ -type f -executable 2>/dev/null | head -20 || true
+          echo "=== Checking for smb2_vita ==="
+          ls -la build/smb2_vita 2>/dev/null || echo "NOT FOUND: build/smb2_vita"
+          ls -la build/smb2_vita.elf 2>/dev/null || echo "NOT FOUND: build/smb2_vita.elf"
+          echo "=== Checking vita tools ==="
+          which vita-elf-create vita-make-fself vita-mksfoex vita-pack-vpk
+
       - name: Create VPK manually
         run: |
           set -x
