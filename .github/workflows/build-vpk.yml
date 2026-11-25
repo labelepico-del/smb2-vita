@@ -27,69 +27,57 @@ jobs:
         run: cmake -S . -B build -DCMAKE_BUILD_TYPE=Release
 
       - name: Build executable
-        run: cmake --build build --parallel "$(nproc)" --verbose 2>&1 | head -200
+        run: cmake --build build --parallel "$(nproc)" 2>&1 | head -200
 
-      - name: Verify build artifacts
+      - name: Create VPK manually
         run: |
+          set -e
+          # Find the executable
           echo "=== Checking build directory ==="
           ls -la build/
-          echo "=== Looking for executable ==="
-          find build/ -type f -executable 2>/dev/null | head -20 || true
-          echo "=== Checking for smb2_vita ==="
-          ls -la build/smb2_vita 2>/dev/null || echo "NOT FOUND: build/smb2_vita"
-          ls -la build/smb2_vita.elf 2>/dev/null || echo "NOT FOUND: build/smb2_vita.elf"
-          echo "=== Checking vita tools ==="
-          which vita-elf-create vita-make-fself vita-mksfoex vita-pack-vpk
-
-      - name: Build SELF using CMake target
-        run: |
-          echo "=== Building SELF target ==="
-          cmake --build build --target smb2_vita.self --verbose 2>&1 | head -100 || true
-          ls -la build/smb2_vita.self 2>/dev/null || echo "NOT FOUND: build/smb2_vita.self"
-
-      - name: Build VPK using CMake target
-        run: |
-          echo "=== Building VPK target ==="
-          cmake --build build --target smb2_vita.vpk --verbose 2>&1 | head -100 || true
-          ls -la build/smb2_vita.vpk 2>/dev/null || echo "NOT FOUND: build/smb2_vita.vpk"
+          
+          # Create .elf from executable
+          vita-elf-create build/smb2_vita build/smb2_vita.elf
+          echo "=== ELF created ==="
+          
+          # Create .self
+          vita-make-fself -c build/smb2_vita.elf build/smb2_vita.self
+          echo "=== SELF created ==="
+          ls -la build/smb2_vita.self
+          
+          # Create param.sfo
+          vita-mksfoex -s APP_VER=01.00 "SMB2 Vita" build/param.sfo
+          echo "=== param.sfo created ==="
+          
+          # Create VPK
+          vita-pack-vpk -s build/param.sfo -b build/smb2_vita.self \
+            -a assets/sce_sys/icon0.png=sce_sys/icon0.png \
+            -a assets/sce_sys/livearea/contents/bg.png=sce_sys/livearea/contents/bg.png \
+            -a assets/sce_sys/livearea/contents/startup.png=sce_sys/livearea/contents/startup.png \
+            -a assets/sce_sys/livearea/contents/template.xml=sce_sys/livearea/contents/template.xml \
+            build/smb2_vita.vpk
+          
+          echo "=== VPK created ==="
+          ls -la build/smb2_vita.vpk
+          
+          # Verify VPK exists and is non-empty
+          if [ ! -f build/smb2_vita.vpk ]; then
+            echo "ERROR: VPK was not created!"
+            exit 1
+          fi
+          VPK_SIZE=$(stat -c %s build/smb2_vita.vpk)
+          echo "VPK size: $VPK_SIZE bytes"
+          if [ "$VPK_SIZE" -lt 1000 ]; then
+            echo "WARNING: VPK seems too small!"
+          fi
 
       - name: Debug build directory
         run: |
-          echo "=== Full build directory listing ==="
-          ls -laR build/ 2>/dev/null | head -100
-          echo "=== Finding all VPK files ==="
-          find . -name "*.vpk" 2>/dev/null || echo "No VPK files found"
-          echo "=== Finding all SELF files ==="
-          find . -name "*.self" 2>/dev/null || echo "No SELF files found"
-          echo "=== Finding all ELF files ==="
-          find . -name "*.elf" 2>/dev/null || echo "No ELF files found"
-
-      - name: Find and upload VPK
-        run: |
-          # List all files in build directory
           ls -la build/
-          
-          # Try to find VPK with multiple patterns
-          VPK_FILE=""
-          for pattern in "*.vpk" "*.self" "smb2_vita*" "smb2*"; do
-            found=$(find . -name "$pattern" 2>/dev/null | head -1)
-            if [ -n "$found" ]; then
-              VPK_FILE="$found"
-              echo "Found: $VPK_FILE"
-              break
-            fi
-          done
-          
-          if [ -n "$VPK_FILE" ]; then
-            echo "VPK_PATH=$VPK_FILE" >> $GITHUB_ENV
-          else
-            echo "No VPK found, will continue without it"
-          fi
 
       - name: Upload VPK artifact
-        if: env.VPK_PATH != ''
         uses: actions/upload-artifact@v4
         with:
-          name: smb2-vita-vpk
-          path: ${{ env.VPK_PATH }}
-          if-no-files-found: warn
+          name: smb2_vita.vpk
+          path: build/smb2_vita.vpk
+          if-no-files-found: error
