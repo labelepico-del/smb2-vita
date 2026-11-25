@@ -37,6 +37,7 @@ jobs:
         run: |
           ls -la build/
           find build/ -name "*.vpk" -o -name "*.self" 2>/dev/null || true
+          find . -name "*.vpk" -o -name "*.self" 2>/dev/null | head -20 || true
 
       - name: Upload VPK
         uses: actions/upload-artifact@v4
