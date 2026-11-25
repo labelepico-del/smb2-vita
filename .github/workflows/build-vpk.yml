@@ -31,14 +31,20 @@ jobs:
 
       - name: Create VPK manually
         run: |
+          set -x
           # Build the self file
+          echo "=== Creating .elf ==="
           vita-elf-create build/smb2_vita build/smb2_vita.elf
+          
+          echo "=== Creating .self ==="
           vita-make-fself -c build/smb2_vita.elf build/smb2_vita.self
           
           # Create param.sfo
+          echo "=== Creating param.sfo ==="
           vita-mksfoex -s APP_VER=01.00 "SMB2 Vita" build/param.sfo
           
           # Create VPK
+          echo "=== Creating VPK ==="
           vita-pack-vpk -s build/param.sfo -b build/smb2_vita.self \
             -a assets/sce_sys/icon0.png=sce_sys/icon0.png \
             -a assets/sce_sys/livearea/contents/bg.png=sce_sys/livearea/contents/bg.png \
