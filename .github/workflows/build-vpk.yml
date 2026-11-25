@@ -20,23 +20,8 @@ jobs:
       - name: Check out
         uses: actions/checkout@v4
 
-      - name: Build SMB2 ROM from disassembly
-        run: |
-          set -euo pipefail
-          mkdir -p /tmp/smb2-build
-          cd /tmp/smb2-build
-          curl -L -o smb2.tar.gz "https://codeload.github.com/Xkeeper0/smb2/tar.gz/$SMB2_COMMIT"
-          tar -xzf smb2.tar.gz
-          cd smb2-*
-          chmod +x tools/asm6f
-          mkdir -p bin
-          ./tools/asm6f smb2.asm -n -c -L bin/smb2.nes
-          echo "$SMB2_PRG0  bin/smb2.nes" | sha256sum --check --strict -
-          mkdir -p "$GITHUB_WORKSPACE/rom"
-          cp bin/smb2.nes "$GITHUB_WORKSPACE/rom/smb2.nes"
-
-      - name: Embed ROM
-        run: python3 tools/embed_rom.py rom/smb2.nes src/rom_data.cpp
+      # Pre-built rom_data.cpp (from verified PRG0 ROM) is checked in.
+      # Skipping source ROM build; see README for how to rebuild from source.
 
       - name: Configure
         run: cmake -S . -B build -DCMAKE_BUILD_TYPE=Release
