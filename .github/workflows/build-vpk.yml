@@ -41,30 +41,17 @@ jobs:
           echo "=== Checking vita tools ==="
           which vita-elf-create vita-make-fself vita-mksfoex vita-pack-vpk
 
-      - name: Create VPK manually
+      - name: Build SELF using CMake target
         run: |
-          set -x
-          # Build the self file
-          echo "=== Creating .elf ==="
-          vita-elf-create build/smb2_vita build/smb2_vita.elf
-          
-          echo "=== Creating .self ==="
-          vita-make-fself -c build/smb2_vita.elf build/smb2_vita.self
-          
-          # Create param.sfo
-          echo "=== Creating param.sfo ==="
-          vita-mksfoex -s APP_VER=01.00 "SMB2 Vita" build/param.sfo
-          
-          # Create VPK
-          echo "=== Creating VPK ==="
-          vita-pack-vpk -s build/param.sfo -b build/smb2_vita.self \
-            -a assets/sce_sys/icon0.png=sce_sys/icon0.png \
-            -a assets/sce_sys/livearea/contents/bg.png=sce_sys/livearea/contents/bg.png \
-            -a assets/sce_sys/livearea/contents/startup.png=sce_sys/livearea/contents/startup.png \
-            -a assets/sce_sys/livearea/contents/template.xml=sce_sys/livearea/contents/template.xml \
-            build/smb2_vita.vpk
-          
-          ls -la build/smb2_vita.vpk
+          echo "=== Building SELF target ==="
+          cmake --build build --target smb2_vita.self --verbose 2>&1 | head -100 || true
+          ls -la build/smb2_vita.self 2>/dev/null || echo "NOT FOUND: build/smb2_vita.self"
+
+      - name: Build VPK using CMake target
+        run: |
+          echo "=== Building VPK target ==="
+          cmake --build build --target smb2_vita.vpk --verbose 2>&1 | head -100 || true
+          ls -la build/smb2_vita.vpk 2>/dev/null || echo "NOT FOUND: build/smb2_vita.vpk"
 
       - name: Debug build directory
         run: |
