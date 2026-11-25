@@ -21,7 +21,7 @@ jobs:
         uses: actions/checkout@v4
 
       - name: Force fresh build
-        run: echo "Build trigger: $(date)"
+        run: echo "Build trigger: $(date +%s)"
 
       # Pre-built rom_data.cpp (from verified PRG0 ROM) is checked in.
       # Skipping source ROM build; see README for how to rebuild from source.
