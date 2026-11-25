@@ -30,7 +30,7 @@ jobs:
         run: cmake -S . -B build -DCMAKE_BUILD_TYPE=Release
 
       - name: Build
-        run: cmake --build build --parallel "$(nproc)"
+        run: cmake --build build --parallel "$(nproc)" --verbose
 
       - name: Upload VPK
         uses: actions/upload-artifact@v4
