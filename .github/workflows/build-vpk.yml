@@ -23,37 +23,39 @@ jobs:
       - name: Force fresh build
         run: 'echo "Build trigger: $(date +%s)"'
 
-      # Pre-built rom_data.cpp (from verified PRG0 ROM) is checked in.
-      # Skipping source ROM build; see README for how to rebuild from source.
-
       - name: Configure
         run: cmake -S . -B build -DCMAKE_BUILD_TYPE=Release
 
-      - name: Build
+      - name: Build executable
+        run: cmake --build build --parallel "$(nproc)" --verbose 2>&1 | head -200
+
+      - name: Create VPK manually
         run: |
-          cmake --build build --parallel "$(nproc)" --verbose 2>&1 | head -200
+          # Build the self file
+          vita-elf-create build/smb2_vita build/smb2_vita.elf
+          vita-make-fself -c build/smb2_vita.elf build/smb2_vita.self
+          
+          # Create param.sfo
+          vita-mksfoex -s APP_VER=01.00 "SMB2 Vita" build/param.sfo
+          
+          # Create VPK
+          vita-pack-vpk -s build/param.sfo -b build/smb2_vita.self \
+            -a assets/sce_sys/icon0.png=sce_sys/icon0.png \
+            -a assets/sce_sys/livearea/contents/bg.png=sce_sys/livearea/contents/bg.png \
+            -a assets/sce_sys/livearea/contents/startup.png=sce_sys/livearea/contents/startup.png \
+            -a assets/sce_sys/livearea/contents/template.xml=sce_sys/livearea/contents/template.xml \
+            build/smb2_vita.vpk
+          
+          ls -la build/smb2_vita.vpk
 
       - name: Debug build directory
         run: |
           ls -la build/
-          find build/ -name "*.vpk" -o -name "*.self" 2>/dev/null || true
-          find . -name "*.vpk" -o -name "*.self" 2>/dev/null | head -20 || true
+          find . -name "*.vpk" -o -name "*.self" -o -name "*.elf" 2>/dev/null | head -20 || true
 
       - name: Upload VPK
-        run: |
-          VPK_FILE=$(find . -name "*.vpk" 2>/dev/null | head -1)
-          if [ -n "$VPK_FILE" ]; then
-            echo "Found VPK: $VPK_FILE"
-            echo "VPK_PATH=$VPK_FILE" >> $GITHUB_ENV
-          else
-            echo "No VPK file found!"
-            exit 1
-          fi
-
-      - name: Upload VPK artifact
-        if: env.VPK_PATH != ''
         uses: actions/upload-artifact@v4
         with:
           name: smb2-vita-vpk
-          path: ${{ env.VPK_PATH }}
+          path: build/smb2_vita.vpk
           if-no-files-found: error
