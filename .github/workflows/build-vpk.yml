@@ -40,8 +40,20 @@ jobs:
           find . -name "*.vpk" -o -name "*.self" 2>/dev/null | head -20 || true
 
       - name: Upload VPK
+        run: |
+          VPK_FILE=$(find . -name "*.vpk" 2>/dev/null | head -1)
+          if [ -n "$VPK_FILE" ]; then
+            echo "Found VPK: $VPK_FILE"
+            echo "VPK_PATH=$VPK_FILE" >> $GITHUB_ENV
+          else
+            echo "No VPK file found!"
+            exit 1
+          fi
+
+      - name: Upload VPK artifact
+        if: env.VPK_PATH != ''
         uses: actions/upload-artifact@v4
         with:
           name: smb2-vita-vpk
-          path: build/smb2_vita.vpk
+          path: ${{ env.VPK_PATH }}
           if-no-files-found: error
