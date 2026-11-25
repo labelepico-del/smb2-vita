@@ -23,7 +23,7 @@ jobs:
       - name: Build SMB2 ROM from disassembly
         run: |
           set -euo pipefail
-          git clone --filter=blob:none https://github.com/Xkeeper0/smb2.git /tmp/smb2
+          git clone https://github.com/Xkeeper0/smb2.git /tmp/smb2
           git -C /tmp/smb2 checkout --detach "$SMB2_COMMIT"
           cd /tmp/smb2
           chmod +x tools/asm6f
