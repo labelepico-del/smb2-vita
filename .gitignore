@@ -1,0 +1,13 @@
+# Build output
+/build/
+*.vpk
+*.self
+*.velf
+
+# Generated game data (do not commit)
+/rom/smb2.nes
+/src/rom_data.cpp
+
+# Editor / OS cruft
+.DS_Store
+Thumbs.db
