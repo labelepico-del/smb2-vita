@@ -66,12 +66,22 @@ jobs:
 
       - name: Find and upload VPK
         run: |
-          VPK_FILE=$(find . -name "*.vpk" 2>/dev/null | head -1)
-          if [ -n "$VPK_FILE" ]; then
-            echo "Found VPK: $VPK_FILE"
-            echo "VPK_PATH=$VPK_FILE" >> $GITHUB_ENV
-          else
-            echo "No VPK file found!"
+          # Try multiple possible VPK names
+          for VAR in "VPK_FILE=$(find . -name '*.vpk' 2>/dev/null | head -1)" \
+                     "VPK_FILE=build/smb2_vita.vpk" \
+                     "VPK_FILE=smb2_vita.vpk" \
+                     "VPK_FILE=build/smb2.vpk" \
+                     "VPK_FILE=smb2.vpk"; do
+            eval "$VAR"
+            if [ -n "$VPK_FILE" ] && [ -f "$VPK_FILE" ]; then
+              echo "Found VPK: $VPK_FILE"
+              echo "VPK_PATH=$VPK_FILE" >> $GITHUB_ENV
+              break
+            fi
+          done
+          if [ -z "$VPK_PATH" ]; then
+            echo "No VPK file found after all search attempts!"
+            ls -la build/ || true
             exit 1
           fi
 
