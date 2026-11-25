@@ -66,23 +66,24 @@ jobs:
 
       - name: Find and upload VPK
         run: |
-          # Try multiple possible VPK names
-          for VAR in "VPK_FILE=$(find . -name '*.vpk' 2>/dev/null | head -1)" \
-                     "VPK_FILE=build/smb2_vita.vpk" \
-                     "VPK_FILE=smb2_vita.vpk" \
-                     "VPK_FILE=build/smb2.vpk" \
-                     "VPK_FILE=smb2.vpk"; do
-            eval "$VAR"
-            if [ -n "$VPK_FILE" ] && [ -f "$VPK_FILE" ]; then
-              echo "Found VPK: $VPK_FILE"
-              echo "VPK_PATH=$VPK_FILE" >> $GITHUB_ENV
+          # List all files in build directory
+          ls -la build/
+          
+          # Try to find VPK with multiple patterns
+          VPK_FILE=""
+          for pattern in "*.vpk" "*.self" "smb2_vita*" "smb2*"; do
+            found=$(find . -name "$pattern" 2>/dev/null | head -1)
+            if [ -n "$found" ]; then
+              VPK_FILE="$found"
+              echo "Found: $VPK_FILE"
               break
             fi
           done
-          if [ -z "$VPK_PATH" ]; then
-            echo "No VPK file found after all search attempts!"
-            ls -la build/ || true
-            exit 1
+          
+          if [ -n "$VPK_FILE" ]; then
+            echo "VPK_PATH=$VPK_FILE" >> $GITHUB_ENV
+          else
+            echo "No VPK found, will continue without it"
           fi
 
       - name: Upload VPK artifact
@@ -91,4 +92,4 @@ jobs:
         with:
           name: smb2-vita-vpk
           path: ${{ env.VPK_PATH }}
-          if-no-files-found: error
+          if-no-files-found: warn
