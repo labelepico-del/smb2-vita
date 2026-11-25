@@ -23,17 +23,17 @@ enum NesButton : std::uint8_t {
     NES_RIGHT = 0x80,
 };
 
-constexpr int kScreenWidth = 960;
-constexpr int kScreenHeight = 544;
+constexpr float kScreenWidth = 960.0f;
+constexpr float kScreenHeight = 544.0f;
 constexpr int kTurboPeriod = 4; // 2 frames on, 2 frames off -> 15 Hz at 60 fps
 
 // The NES output is 256x240 (4:3). On the Vita's 960x544 (16:9) screen we use
 // a single uniform scale so pixels keep their aspect ratio, letterboxing the
 // sides with black bars instead of stretching the image.
-constexpr float kScale = static_cast<float>(kScreenHeight) / Emulator::height();
-constexpr float kScaleX = kScale;
-constexpr float kScaleY = kScale;
-constexpr float kOffsetX = (kScreenWidth - Emulator::width() * kScaleX) * 0.5f;
+float kScale = static_cast<float>(kScreenHeight) / Emulator::height();
+float kScaleX = kScale;
+float kScaleY = kScale;
+float kOffsetX = (kScreenWidth - Emulator::width() * kScaleX) * 0.5f;
 
 std::uint8_t mapButtons(std::uint32_t buttons, bool& turboA, bool& turboB, int& turboPhase) {
     std::uint8_t nes = 0;

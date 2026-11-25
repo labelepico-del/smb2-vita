@@ -89,11 +89,9 @@ target_link_libraries(smb2_vita
   SceAudio_stub
   ScePower_stub
   SceDisplay_stub
-  SceGxm_stub
-  SceKernelThreadMgr_stub
-  SceProcessmgr_stub
   m
   stdc++
+  pthread
 )
 
 vita_create_self(smb2_vita.self smb2_vita)

@@ -19,7 +19,7 @@ bool AudioOutput::start() {
     }
 
     port_ = sceAudioOutOpenPort(SCE_AUDIO_OUT_PORT_TYPE_MAIN, kPortFrames,
-                                SCE_AUDIO_OUT_SAMPLE_RATE_48000,
+                                48000,
                                 SCE_AUDIO_OUT_MODE_STEREO);
     if (port_ < 0) {
         port_ = -1;
@@ -27,7 +27,8 @@ bool AudioOutput::start() {
     }
 
     int volumes[2] = {SCE_AUDIO_OUT_MAX_VOL, SCE_AUDIO_OUT_MAX_VOL};
-    sceAudioOutSetVolume(port_, SCE_AUDIO_VOLUME_FLAG_L_CH | SCE_AUDIO_VOLUME_FLAG_R_CH,
+    sceAudioOutSetVolume(port_, static_cast<SceAudioOutChannelFlag>(
+        SCE_AUDIO_VOLUME_FLAG_L_CH | SCE_AUDIO_VOLUME_FLAG_R_CH),
                          volumes);
 
     read_.store(0, std::memory_order_relaxed);
