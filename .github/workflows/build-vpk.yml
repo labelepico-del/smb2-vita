@@ -55,8 +55,14 @@ jobs:
 
       - name: Debug build directory
         run: |
-          ls -la build/
-          find . -name "*.vpk" -o -name "*.self" -o -name "*.elf" 2>/dev/null | head -20 || true
+          echo "=== Full build directory listing ==="
+          ls -laR build/ 2>/dev/null | head -100
+          echo "=== Finding all VPK files ==="
+          find . -name "*.vpk" 2>/dev/null || echo "No VPK files found"
+          echo "=== Finding all SELF files ==="
+          find . -name "*.self" 2>/dev/null || echo "No SELF files found"
+          echo "=== Finding all ELF files ==="
+          find . -name "*.elf" 2>/dev/null || echo "No ELF files found"
 
       - name: Find and upload VPK
         run: |
